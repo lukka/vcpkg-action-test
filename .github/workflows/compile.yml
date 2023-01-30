@@ -11,11 +11,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: linux
+          - os: linux-latest
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
-          - name: windows
+          - os: windows-latest
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
-          - name: macos-latest
+          - os: macos-latest
             vcpkgCommitId: '253704407ae68efa37bf8f5b59b3e06dd40d3d3f'
 
     env:
