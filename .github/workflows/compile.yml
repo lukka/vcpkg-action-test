@@ -12,16 +12,13 @@ jobs:
       matrix:
         include:
           - name: linux
-            os: ubuntu-latest
-            triplet: x64-linux
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
           - name: windows
-            os: windows-latest
-            triplet: x64-windows-static
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
+          - name: macos-latest
+            vcpkgCommitId: '253704407ae68efa37bf8f5b59b3e06dd40d3d3f'
 
     env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
       VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg/installed
 
     steps:
@@ -62,12 +59,12 @@ jobs:
           vcpkgJsonGlob: '**/vcpkg.json'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
 
-      # - name: Prints output of run-vcpkg's action.
-      #   run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
+      - name: Prints output of run-vcpkg's action.
+        run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
 
-      # - name: Set VCPKG_ROOT
-      #   run: echo "VCPKG_ROOT=$(echo $VCPKG_INSTALLATION_ROOT)" >> $GITHUB_ENV
-      #   shell: bash
+      - name: Set VCPKG_ROOT
+        run: echo "VCPKG_ROOT=$(echo $VCPKG_INSTALLATION_ROOT)" >> $GITHUB_ENV
+        shell: bash
 
       - name: Build
         shell: cmd
