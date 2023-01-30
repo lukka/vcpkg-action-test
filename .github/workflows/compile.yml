@@ -1,4 +1,5 @@
-name: Compile
+name: hosted-cargo-vcpkg-install-autocache
+on: [push, workflow_dispatch]
 
 env:
   CARGO_TERM_COLOR: always
