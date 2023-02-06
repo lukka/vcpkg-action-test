@@ -3,3 +3,5 @@
 generated/
 .direnv
 .history
+vcpkg2
+.DS_Store

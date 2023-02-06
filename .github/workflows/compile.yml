@@ -9,17 +9,22 @@ jobs:
     name: Compile for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: linux-latest
+            triplet: x64-linux
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
           - os: windows-latest
+            triplet: x64-windows-static
             vcpkgCommitId: '136ad069fd2a7e61eeca5e4c48608c1fd3921a70'
           - os: macos-latest
+            triplet: x64-osx
             vcpkgCommitId: '253704407ae68efa37bf8f5b59b3e06dd40d3d3f'
 
     env:
       VCPKG_INSTALLED_DIR: ${{ github.workspace }}/vcpkg/installed
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
 
     steps:
       - name: Checkout
@@ -29,41 +34,49 @@ jobs:
         run: |
           if [ "$RUNNER_OS" == "Linux" ]; then
            sudo apt-get update && sudo apt-get install -y libx11-dev nasm libdbus-1-dev libudev-dev libxcb-randr0-dev
-           vcpkg update && vcpkg install libvpx libyuv
           elif [ "$RUNNER_OS" == "macOS" ]; then
            brew install nasm
-           vcpkg update && vcpkg install libvpx libyuv
           elif [ "$RUNNER_OS" == "Windows" ]; then
             echo "Nothing to do."
-            vcpkg update && vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static
           fi
         shell: bash
 
-      # - name: Set up VCPKG deps
-      #   uses: lukka/run-vcpkg@v10
-      #   id: runvcpkg
-      #   with:
-      #     vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
-      #     # Run vcpkg with the command specified by the `runVcpkgFormatString` input.
-      #     runVcpkgInstall: true
-      #     vcpkgJsonGlob: '**/vcpkg.json'
-      #     vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+      - name: Set up VCPKG deps
+        uses: lukka/run-vcpkg@v10
+        id: runvcpkg
+        with:
+          vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+          # Run vcpkg with the command specified by the `runVcpkgFormatString` input.
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+
+      - name: List $RUNNER_WORKSPACE before build
+        run: find $RUNNER_WORKSPACE
+        shell: bash
+        if: always()
 
       # - name: Prints output of run-vcpkg's action.
       #   run: echo "root='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_ROOT_OUT }}', triplet='${{ steps.runvcpkg.outputs.RUNVCPKG_VCPKG_DEFAULT_TRIPLET_OUT }}' "
 
-      - name: Set VCPKG_ROOT
-        run: echo "VCPKG_ROOT=$(echo $VCPKG_INSTALLATION_ROOT)" >> $GITHUB_ENV
-        shell: bash
+      #- name: Set VCPKG_ROOT
+      #  run: echo "VCPKG_ROOT=$(echo $VCPKG_INSTALLATION_ROOT)" >> $GITHUB_ENV
+      #  shell: bash
 
       - name: Build
         shell: cmd
         run: |
           set PATH=C:\msys64\mingw64\bin;%PATH%
+          set VCPKG_DEFAULT_TRIPLET=${{ matrix.triplet }}
           cargo build --verbose
         if: matrix.os == 'windows-latest'
 
       - name: Build
         shell: bash
-        run: cargo build --verbose
+        run: RUST_BACKTRACE=full cargo build --verbose
         if: matrix.os != 'windows-latest'
+
+      - name: List $RUNNER_WORKSPACE after build
+        run: find $RUNNER_WORKSPACE
+        shell: bash
+        if: always()
